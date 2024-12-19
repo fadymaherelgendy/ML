@@ -134,7 +134,7 @@ validation_dataset_final = validation_dataset.cache().prefetch(PREFETCH_BUFFER_S
 
 history = model.fit(
     train_dataset_final,
-    epochs=15,
+    epochs=10,
     validation_data=validation_dataset_final,
     verbose=2
     )
