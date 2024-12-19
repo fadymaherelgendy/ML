@@ -1,0 +1,4 @@
+tensorflow==2.12
+matplotlib==3.6.2
+numpy==1.21.4
+ipywidgets==7.6.5
