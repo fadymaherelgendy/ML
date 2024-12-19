@@ -138,3 +138,4 @@ history = model.fit(
     validation_data=validation_dataset_final,
     verbose=2
     )
+model.save('/app/models/cats_vs_dogs_model.h5')
