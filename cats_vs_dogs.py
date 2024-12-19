@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 import tensorflow as tf
-print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 
 # Interactive widgets
 from ipywidgets import widgets
@@ -77,23 +76,25 @@ plt.show()
 
 
 #Building a Small Model from Scratch
+model = tf.keras.models.Sequential([
+    # Rescale the image. Note the input shape is the desired size of the image: 150x150 with 3 bytes for color
+    tf.keras.Input(shape=(150, 150, 3)),
+    tf.keras.layers.Rescaling(1./255),
+    # Convolution and Pooling layers
+    tf.keras.layers.Conv2D(16, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+    # Flatten the results to feed into a DNN
+    tf.keras.layers.Flatten(),
+    # 512 neuron hidden layer
+    tf.keras.layers.Dense(512, activation='relu'),
+    # Only 1 output neuron. It will contain a value from 0-1 where 0 for one class ('cats') and 1 for the other ('dogs')
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
 
-strategy = tf.distribute.MirroredStrategy()
-
-with strategy.scope():
-    model = tf.keras.models.Sequential([
-        tf.keras.Input(shape=(150, 150, 3)),
-        tf.keras.layers.Rescaling(1./255),
-        tf.keras.layers.Conv2D(16, (3,3), activation='relu'),
-        tf.keras.layers.MaxPooling2D(2,2),
-        tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-        tf.keras.layers.MaxPooling2D(2,2),
-        tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
-        tf.keras.layers.MaxPooling2D(2,2),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(512, activation='relu'),
-        tf.keras.layers.Dense(1, activation='sigmoid')
-    ])
 
 model.summary()
 
@@ -111,7 +112,7 @@ model.compile(
 train_dataset = tf.keras.utils.image_dataset_from_directory(
     train_dir,
     image_size=(150, 150),
-    batch_size=10,
+    batch_size=20,
     label_mode='binary'
     )
 
@@ -119,7 +120,7 @@ train_dataset = tf.keras.utils.image_dataset_from_directory(
 validation_dataset = tf.keras.utils.image_dataset_from_directory(
     validation_dir,
     image_size=(150, 150),
-    batch_size=10,
+    batch_size=20,
     label_mode='binary'
     )
 
@@ -131,48 +132,9 @@ validation_dataset_final = validation_dataset.cache().prefetch(PREFETCH_BUFFER_S
 
 #Training
 
-early_stopping = tf.keras.callbacks.EarlyStopping(
-    monitor='val_loss',  # Monitor validation loss
-    patience=3,  # Number of epochs with no improvement before stopping
-    restore_best_weights=True
-)
-
-
 history = model.fit(
     train_dataset_final,
-    epochs=10,
+    epochs=15,
     validation_data=validation_dataset_final,
-    verbose=2,
-    callbacks=[early_stopping]
+    verbose=2
     )
-
-
-
-
-
-#Evaluating Accuracy and Loss for the Model
-
-def plot_loss_acc_text(history):
-    '''Prints the training and validation loss and accuracy as simple text-based graphs'''
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-    
-    epochs = range(len(acc))
-
-    # Print Accuracy
-    print("\nTraining and Validation Accuracy:")
-    for epoch in epochs:
-        print(f"Epoch {epoch+1:02d}: {'*' * int(acc[epoch] * 50)} ({acc[epoch]*100:.2f}%) "
-              f"vs {'*' * int(val_acc[epoch] * 50)} ({val_acc[epoch]*100:.2f}%)")
-
-    # Print Loss
-    print("\nTraining and Validation Loss:")
-    for epoch in epochs:
-        print(f"Epoch {epoch+1:02d}: {'-' * int(loss[epoch] * 50)} ({loss[epoch]:.4f}) "
-              f"vs {'-' * int(val_loss[epoch] * 50)} ({val_loss[epoch]:.4f})")
-
-# Example usage:
-# plot_loss_acc_text(history)
-
