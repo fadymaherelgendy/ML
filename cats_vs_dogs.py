@@ -140,5 +140,5 @@ history = model.fit(
     verbose=2
     )
 model.save('/app/models/cats_vs_dogs_model.h5')
-keras.saving.save_model(model, '/app/models/cats_vs_dogs_model.keras')
+tf.keras.models.save_model(model, '/app/models/cats_vs_dogs_model.keras')
 
