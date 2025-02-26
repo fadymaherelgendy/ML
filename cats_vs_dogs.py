@@ -48,6 +48,7 @@ print(f'total training dog images: {len(os.listdir(train_dogs_dir))}')
 print(f'total validation cat images: {len(os.listdir(validation_cats_dir))}')
 print(f'total validation dog images: {len(os.listdir(validation_dogs_dir))}')
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 #Now take a look at a few pictures to get a better sense of what the cat and dog datasets look like. You can re-run the cell to see a fresh batch each time
 # Parameters for your graph; you will output images in a 4x4 configuration
